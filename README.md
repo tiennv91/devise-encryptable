@@ -20,13 +20,13 @@ class User < ActiveRecord::Base
 end
 ```
 
-And add the `password_salt` field to the database through a migration:
+And add the `salt` field to the database through a migration:
 
 
 ```ruby
 class DeviseCreateUsers < ActiveRecord::Migration
   def change
-    add_column :users, :password_salt, :string
+    add_column :users, :salt, :string
   end
 end
 ```

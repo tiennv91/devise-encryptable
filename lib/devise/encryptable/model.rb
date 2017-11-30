@@ -26,12 +26,12 @@ module Devise
       end
 
       def self.required_fields(klass)
-        [:password_salt]
+        [:salt]
       end
 
       # Generates password salt when setting the password.
       def password=(new_password)
-        self.password_salt = self.class.password_salt if new_password.present?
+        self.salt = self.class.salt if new_password.present?
         super
       end
 
@@ -41,19 +41,19 @@ module Devise
         encryptor_class.compare(encrypted_password, password, self.class.stretches, authenticatable_salt, self.class.pepper)
       end
 
-      # Overrides authenticatable salt to use the new password_salt
+      # Overrides authenticatable salt to use the new salt
       # column. authenticatable_salt is used by `valid_password?`
       # and by other modules whenever there is a need for a random
       # token based on the user password.
       def authenticatable_salt
-        self.password_salt
+        self.salt
       end
 
     protected
 
       # Digests the password using the configured encryptor.
       def password_digest(password)
-        if password_salt.present?
+        if salt.present?
           encryptor_class.digest(password, self.class.stretches, authenticatable_salt, self.class.pepper)
         end
       end
@@ -77,7 +77,7 @@ module Devise
           end
         end
 
-        def password_salt
+        def salt
           self.encryptor_class.salt(self.stretches)
         end
       end

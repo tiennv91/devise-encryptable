@@ -6,19 +6,19 @@ class EncryptableTest < ActiveSupport::TestCase
   include Support::Swappers
 
   def encrypt_password(admin, pepper=Admin.pepper, stretches=Admin.stretches, encryptor=Admin.encryptor_class)
-    encryptor.digest('123456', stretches, admin.password_salt, pepper)
+    encryptor.digest('123456', stretches, admin.salt, pepper)
   end
 
   test 'should generate salt while setting password' do
-    assert create_admin.password_salt.present?
+    assert create_admin.salt.present?
   end
 
   test 'should not change password salt when updating' do
     admin = create_admin
-    salt = admin.password_salt
-    admin.expects(:password_salt=).never
+    salt = admin.salt
+    admin.expects(:salt=).never
     admin.save!
-    assert_equal salt, admin.password_salt
+    assert_equal salt, admin.salt
   end
 
   test 'should generate a base64 hash using SecureRandom for password salt' do
@@ -29,15 +29,15 @@ class EncryptableTest < ActiveSupport::TestCase
       expected_method = Devise::VERSION >= '3.1.0' ? :urlsafe_base64 : :base64
 
       SecureRandom.expects(expected_method).with(15).returns('01lI').once
-      salt = create_admin.password_salt
+      salt = create_admin.salt
       assert_not_equal '01lI', salt
       assert_equal 4, salt.size
     end
   end
 
   test 'should not generate salt if password is blank' do
-    assert create_admin(:password => nil).password_salt.blank?
-    assert create_admin(:password => '').password_salt.blank?
+    assert create_admin(:password => nil).salt.blank?
+    assert create_admin(:password => '').salt.blank?
   end
 
   test 'should encrypt password again if password has changed' do
@@ -57,14 +57,14 @@ class EncryptableTest < ActiveSupport::TestCase
 
   test 'should not validate password when salt is nil' do
     admin = create_admin
-    admin.password_salt = nil
+    admin.salt = nil
     admin.save
     assert_not admin.valid_password?('123456')
   end
 
   test 'required_fields should contain the fields that Devise uses' do
     assert_same_content Devise::Models::Encryptable.required_fields(Admin), [
-      :password_salt
+      :salt
     ]
   end
 end
